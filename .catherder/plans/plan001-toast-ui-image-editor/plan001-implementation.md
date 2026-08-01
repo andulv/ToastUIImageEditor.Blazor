@@ -3,7 +3,7 @@ type: plan-implementation
 description: "Plan 001 - deliver the smallest browser-verified Blazor wrapper for TOAST UI Image Editor"
 status: active
 created: 2026-08-01T15:07:12+02:00
-updated: 2026-08-01T15:07:12+02:00
+updated: 2026-08-01T15:22:08+02:00
 ---
 # Plan 001 Implementation — Minimal TOAST UI Image Editor Wrapper
 
@@ -24,7 +24,7 @@ Allowed task statuses: not-started, in-progress, blocked, implemented, reviewed,
 
 | Status | Task |
 |---|---|
-| `not-started` | [Task P001-T01: Refresh research and decide the asset acquisition strategy](tasks/task001-01-research-and-asset-strategy.md) |
+| `completed` | [Task P001-T01: Refresh research and decide the asset acquisition strategy](tasks/task001-01-research-and-asset-strategy.md) |
 | `not-started` | [Task P001-T02: Vendor version-pinned upstream assets as static web assets](tasks/task001-02-vendor-upstream-assets.md) |
 | `not-started` | [Task P001-T03: Implement the Blazor image-editor component and JS interop](tasks/task001-03-image-editor-component.md) |
 | `not-started` | [Task P001-T04: Sample image, sample page, and documentation](tasks/task001-04-sample-and-docs.md) |
