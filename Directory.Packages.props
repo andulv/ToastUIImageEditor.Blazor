@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!-- Keep this standalone submodule independent from a parent repository's central package versions. -->
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+</Project>

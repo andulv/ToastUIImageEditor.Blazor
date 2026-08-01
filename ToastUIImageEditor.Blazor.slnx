@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/ToastUIImageEditor.Blazor.SampleHost/ToastUIImageEditor.Blazor.SampleHost.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/ToastUIImageEditor.Blazor/ToastUIImageEditor.Blazor.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ToastUIImageEditor.Blazor.Tests/ToastUIImageEditor.Blazor.Tests.csproj" />
+  </Folder>
+</Solution>

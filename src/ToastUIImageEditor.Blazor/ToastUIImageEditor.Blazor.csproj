@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RazorLangVersion>latest</RazorLangVersion>
+    <IsPackable>true</IsPackable>
+
+    <PackageId>ToastUIImageEditor.Blazor</PackageId>
+    <Title>ToastUIImageEditor.Blazor</Title>
+    <Description>Blazor Razor Class Library scaffold for a TOAST UI Image Editor wrapper.</Description>
+    <Authors>ToastUIImageEditor.Blazor contributors</Authors>
+    <Company>ToastUIImageEditor.Blazor contributors</Company>
+    <PackageTags>Blazor;TOAST;UI;Image;Editor;Components</PackageTags>
+    <Version>0.1.0-preview.1</Version>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageOutputPath>$(MSBuildThisFileDirectory)..\..\..\..\artifacts\packages</PackageOutputPath>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <RootNamespace>ToastUIImageEditor.Blazor</RootNamespace>
+
+    <NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
+
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+</Project>

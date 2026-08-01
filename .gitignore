@@ -1,0 +1,30 @@
+# Build outputs
+**/bin/
+**/obj/
+artifacts/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# IDE
+.vs/
+.idea/
+*.swp
+.playwright-mcp/
+
+# Secrets
+**/secrets.json
+appsettings.*.local.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local environments
+.venv/
+
+# Test results
+**/TestResults/
