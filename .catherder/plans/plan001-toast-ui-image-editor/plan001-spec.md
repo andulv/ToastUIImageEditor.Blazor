@@ -3,7 +3,7 @@ type: plan-spec
 description: "Plan 001 - deliver the smallest browser-verified Blazor wrapper for TOAST UI Image Editor"
 status: ready
 created: 2026-08-01T14:30:06+02:00
-updated: 2026-08-01T14:30:06+02:00
+updated: 2026-08-02T16:05:52+02:00
 ---
 # Plan 001 Spec — Minimal TOAST UI Image Editor Wrapper
 
@@ -42,6 +42,7 @@ Initial research identifies upstream version 3.15.3, an MIT-licensed HTML5 Canva
 - Disable upstream usage statistics by default.
 - Clean up the native editor and JavaScript references when the Blazor component is disposed.
 - Replace the scaffold sample content with a focused image-editor sample page that explains the demonstrated behavior.
+- Keep sample images in a sample-application-owned directory and list its supported image files in a selector after each page load. Include three suitable images so operators can test different image shapes.
 - Add a small set of deterministic unit/component tests only for stable wrapper behavior or non-obvious interop contracts that can fail independently of this plan.
 - Build and test the solution, then run the sample and verify the complete load/edit/output flow with browser tooling. Record the browser URL, actions, console errors, and result.
 - Document package usage, sample execution, asset/version attribution, and the intentionally small initial API.
@@ -60,6 +61,7 @@ Initial research identifies upstream version 3.15.3, an MIT-licensed HTML5 Canva
 - Keep tests small and behavior-focused. A project test must protect a durable consumer-visible contract or a non-obvious interop/disposal regression.
 - Preserve upstream MIT license notices and document all bundled third-party assets and versions.
 - Do not modify the parent CatHerder application in this plan.
+- The sample image selector lists only supported image files in the sample host's owned directory. It must not accept a client-supplied filesystem path.
 
 ## 5. Out of Scope
 
@@ -80,6 +82,8 @@ Begin by refreshing the saved research against official sources and inspecting W
 A likely first slice is one element-owning Razor component that initializes `tui.ImageEditor` after first render with `includeUI`, a bundled sample image, bounded dimensions, and `usageStatistics: false`. Keep the JavaScript instance inside a module-owned handle and expose only what the sample requires. Prefer the upstream built-in download/output path for this first slice; add a .NET export API only if research or browser verification shows it is necessary to demonstrate useful operation.
 
 The implementation plan should separate research/asset decisions, wrapper implementation, sample and documentation, focused tests, and final browser verification into reviewable tasks. The executor has browser tooling and must inspect both the rendered result and browser console. Store detailed research or browser evidence under this plan's `data/` directory.
+
+For the follow-up sample gallery, enumerate supported image files from the sample host's `wwwroot/images/samples/` directory when the page loads. Use only those discovered file names to construct static URLs. Keep the editor within a balanced maximum width and viewport-bounded height rather than stretching a short editor across the whole content area.
 
 ## 7. Open Questions
 

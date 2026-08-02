@@ -3,7 +3,7 @@ type: plan-implementation
 description: "Plan 001 - deliver the smallest browser-verified Blazor wrapper for TOAST UI Image Editor"
 status: active
 created: 2026-08-01T15:07:12+02:00
-updated: 2026-08-01T15:22:08+02:00
+updated: 2026-08-02T16:05:52+02:00
 ---
 # Plan 001 Implementation — Minimal TOAST UI Image Editor Wrapper
 
@@ -30,6 +30,7 @@ Allowed task statuses: not-started, in-progress, blocked, implemented, reviewed,
 | `not-started` | [Task P001-T04: Sample image, sample page, and documentation](tasks/task001-04-sample-and-docs.md) |
 | `not-started` | [Task P001-T05: Focused unit/component tests](tasks/task001-05-tests.md) |
 | `not-started` | [Task P001-T06: Final browser verification and evidence](tasks/task001-06-browser-verification.md) |
+| `not-started` | [Task P001-T07: Improve the sample layout and add a runtime image selector](tasks/task001-07-sample-image-selector.md) |
 
 ## 2. Task Parallelism
 
@@ -53,7 +54,8 @@ that only a real browser can prove.
 
 T01's recorded decision (vendored distribution, dependency bundling,
 `file-saver` requirement) directly determines what T02 acquires, so T01 must be
-accepted before T02 starts.
+accepted before T02 starts. T07 follows T06 because it changes the sample page
+and requires a fresh browser check of its layout and image selection.
 
 ## 3. Acceptance Criteria
 
@@ -67,3 +69,4 @@ accepted before T02 starts.
 - [ ] Focused unit/component tests pass (`dotnet test`) and cover only stable wrapper contracts — not browser-only behavior.
 - [ ] `dotnet build ToastUIImageEditor.Blazor.slnx` succeeds with no new warnings beyond a pre-existing baseline.
 - [ ] Browser verification recorded in `data/` shows the full UI loading the bundled image, a representative edit, a working output/download path, a clean console (no failed assets, no CDN, no usage-statistics request), and clean disposal.
+- [ ] The sample stays within a balanced maximum width and viewport-bounded height, and its selector lists the supported images found in the sample host's owned directory after page load.
