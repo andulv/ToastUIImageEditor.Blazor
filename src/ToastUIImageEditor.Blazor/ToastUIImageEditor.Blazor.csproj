@@ -9,7 +9,7 @@
 
     <PackageId>ToastUIImageEditor.Blazor</PackageId>
     <Title>ToastUIImageEditor.Blazor</Title>
-    <Description>Blazor Razor Class Library scaffold for a TOAST UI Image Editor wrapper.</Description>
+    <Description>Blazor Razor Class Library wrapper for the bundled TOAST UI Image Editor 3.15.3.</Description>
     <Authors>ToastUIImageEditor.Blazor contributors</Authors>
     <Company>ToastUIImageEditor.Blazor contributors</Company>
     <PackageTags>Blazor;TOAST;UI;Image;Editor;Components</PackageTags>
@@ -34,6 +34,7 @@
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="" />
+    <None Include="THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
 </Project>

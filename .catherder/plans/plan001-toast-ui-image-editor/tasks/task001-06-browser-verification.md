@@ -1,9 +1,9 @@
 ---
 type: task
 description: "Task 001-06 — final browser verification and evidence"
-status: not-started
+status: implemented
 created: 2026-08-01T15:07:12+02:00
-updated: 2026-08-01T15:07:12+02:00
+updated: 2026-08-01T20:53:55+02:00
 ---
 ## Required Context
 Load and follow these skills:
@@ -70,10 +70,20 @@ edit, and download behavior.
 # Execution
 
 ## Executor Notes
-By: @ YYYY-MM-DDTHH:MM:SS+HH:MM
+By: @openai-codex 2026-08-01T20:53:55+02:00
+
+Recorded browser evidence in `data/browser-verification-2026-08-01.md` and its screenshot. The Chrome DevTools MCP server could not start a headful browser because this host has no X server. Used local headless Chrome through the Chrome DevTools Protocol instead. It verified the full UI, a native 30-degree rotate edit, FileSaver download, local-only requests, no usage-statistics request, and navigation-based component removal.
 
 ## Executor Verification
-By: @ YYYY-MM-DDTHH:MM:SS+HH:MM
+By: @openai-codex 2026-08-01T20:53:55+02:00
+
+- Opened `http://127.0.0.1:5107` in local Chrome 151.0.7922.71 at a 1440 by 1200 viewport. The browser rendered the full native UI and the bundled sample image.
+- Used the native Rotate menu and clockwise 30-degree control. The canvas changed from 225 by 150 to 269 by 242 pixels. The saved screenshot shows the rotated image and active Rotate controls.
+- Used the native Download button. Chrome emitted a download event and wrote `Sample image.png`, so no .NET export API is required.
+- Recorded no failed request, console entry, or runtime exception. All HTTP asset requests used `127.0.0.1:5107`; no CDN, Google Analytics, or usage-statistics request occurred.
+- Navigated to `/not-found` to remove the component. The browser reached that route with no console or network error.
+- Ran `dotnet build ToastUIImageEditor.Blazor.slnx` — passed (0 warnings, 0 errors). Ran `dotnet test tests/ToastUIImageEditor.Blazor.Tests/ToastUIImageEditor.Blazor.Tests.csproj` — passed (3 passed, 0 failed). Ran `git diff --check` and the plan validator — both passed; the validator reported 0 errors and 0 warnings.
+
 
 ## Reviewer Verification
 By: @ YYYY-MM-DDTHH:MM:SS+HH:MM

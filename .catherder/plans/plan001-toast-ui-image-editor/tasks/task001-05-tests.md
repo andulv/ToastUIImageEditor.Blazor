@@ -1,9 +1,9 @@
 ---
 type: task
 description: "Task 001-05 — focused unit/component tests"
-status: not-started
+status: implemented
 created: 2026-08-01T15:07:12+02:00
-updated: 2026-08-01T15:07:12+02:00
+updated: 2026-08-01T20:50:19+02:00
 ---
 ## Required Context
 Load and follow these skills:
@@ -63,10 +63,18 @@ non-obvious interop details — without claiming to prove browser-only behavior.
 # Execution
 
 ## Executor Notes
-By: @ YYYY-MM-DDTHH:MM:SS+HH:MM
+By: @openai-codex 2026-08-01T20:50:19+02:00
+
+Added bUnit 2.8.6 with the .NET CLI. The three tests protect stable wrapper contracts: the package static-module path, root-element rendering with loose JS interop, and forwarding `usageStatistics: false` to the interop module. The tests do not claim to test canvas, native editor, asset loading, or download behavior.
 
 ## Executor Verification
-By: @ YYYY-MM-DDTHH:MM:SS+HH:MM
+By: @openai-codex 2026-08-01T20:50:19+02:00
+
+- Ran `dotnet test tests/ToastUIImageEditor.Blazor.Tests/ToastUIImageEditor.Blazor.Tests.csproj` — passed (3 passed, 0 failed).
+- Ran `dotnet build ToastUIImageEditor.Blazor.slnx` — passed (0 warnings, 0 errors).
+- Ran `node --check src/ToastUIImageEditor.Blazor/ImageEditor.razor.js`, `git diff --check`, and the plan validator — all passed. The validator reported 0 errors and 0 warnings.
+- Manually reviewed each test against the testing guidelines. Each failure identifies a wrapper contract regression; none purports to prove browser-only behavior.
+
 
 ## Reviewer Verification
 By: @ YYYY-MM-DDTHH:MM:SS+HH:MM
