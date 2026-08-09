@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title description">
+  <title id="title">Sample landscape</title>
+  <desc id="description">A colored landscape for image editing.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" x2="0" y1="0" y2="1">
+      <stop stop-color="#3f8ccf" offset="0" />
+      <stop stop-color="#c8e7f8" offset="1" />
+    </linearGradient>
+    <linearGradient id="lake" x1="0" x2="0" y1="0" y2="1">
+      <stop stop-color="#4a9bc0" offset="0" />
+      <stop stop-color="#195a82" offset="1" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#sky)" />
+  <circle cx="936" cy="148" r="68" fill="#ffd86a" />
+  <path d="M0 468 258 236l187 185 197-251 285 298 108-104 165 142v294H0z" fill="#396c67" />
+  <path d="M0 552 273 371l185 163 220-189 214 188 136-91 172 132v226H0z" fill="#255c57" />
+  <rect y="564" width="1200" height="236" fill="url(#lake)" />
+  <path d="M0 620c188-46 359-31 536 9s377 49 664-4v175H0z" fill="#1e6f96" opacity=".55" />
+  <path d="m384 612 36 0 24 188h-84z" fill="#4e392d" />
+  <circle cx="408" cy="550" r="92" fill="#2e7a4f" />
+  <circle cx="341" cy="575" r="59" fill="#338a59" />
+  <circle cx="477" cy="580" r="64" fill="#256c48" />
+</svg>

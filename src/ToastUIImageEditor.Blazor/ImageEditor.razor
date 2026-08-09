@@ -1,0 +1,472 @@
+@implements IAsyncDisposable
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+
+<div class="image-editor @(UseDefaultUi ? "image-editor-default" : null)">
+    @if (!UseDefaultUi)
+    {
+    <div class="image-editor-controls image-editor-controls-primary" aria-label="Image editing controls">
+        <section class="control-group" aria-labelledby="image-controls">
+            <h2 id="image-controls">Image</h2>
+            <div class="control-actions">
+                <button type="button" class="action-wide" title="Open image resize options" @onclick="OpenResizeDialogAsync"><span class="button-icon" aria-hidden="true">⤢</span>Resize</button>
+                @if (ControlState.IsCropping)
+                {
+                    <button type="button" title="Apply the crop selection" @onclick='() => RunEditorOperationAsync("applyCrop")'><span class="button-icon" aria-hidden="true">✓</span>Apply crop</button>
+                    <button type="button" title="Cancel the crop selection" @onclick='() => RunEditorOperationAsync("cancelCrop")'><span class="button-icon" aria-hidden="true">×</span>Cancel crop</button>
+                }
+                else
+                {
+                    <button type="button" class="action-wide" title="Start a crop selection" @onclick='() => RunEditorOperationAsync("startCrop")'><span class="button-icon" aria-hidden="true">✂</span>Start crop</button>
+                }
+                <button type="button" title="Flip the image horizontally" @onclick='() => RunEditorOperationAsync("flipHorizontal")'><span class="button-icon" aria-hidden="true">↔</span>Flip horizontal</button>
+                <button type="button" title="Flip the image vertically" @onclick='() => RunEditorOperationAsync("flipVertical")'><span class="button-icon" aria-hidden="true">↕</span>Flip vertical</button>
+                <button type="button" title="Rotate the image 90 degrees clockwise" @onclick='() => RunEditorOperationAsync("rotateClockwise")'><span class="button-icon" aria-hidden="true">↻</span>Rotate right</button>
+                <button type="button" title="Rotate the image 90 degrees counterclockwise" @onclick='() => RunEditorOperationAsync("rotateCounterclockwise")'><span class="button-icon" aria-hidden="true">↺</span>Rotate left</button>
+                <button type="button" class="action-wide" title="Open custom rotation options" @onclick="OpenRotateDialog"><span class="button-icon" aria-hidden="true">⟳</span>Custom rotate</button>
+            </div>
+        </section>
+
+        <section class="control-group" aria-labelledby="draw-controls">
+            <h2 id="draw-controls">Draw</h2>
+            <div class="control-actions">
+                <button type="button" class="@GetDrawToolButtonClass("freeDraw")" title="Choose free drawing options" @onclick='() => SelectDrawToolAsync("freeDraw")'><span class="button-icon" aria-hidden="true">✎</span>Draw</button>
+                <button type="button" class="@GetDrawToolButtonClass("shape")" title="Choose shape options" @onclick='() => SelectDrawToolAsync("shape")'><span class="button-icon" aria-hidden="true">▭</span>Shape</button>
+                <button type="button" class="@GetDrawToolButtonClass("icon")" title="Choose icon options" @onclick='() => SelectDrawToolAsync("icon")'><span class="button-icon" aria-hidden="true">➜</span>Icon</button>
+                <button type="button" class="@GetDrawToolButtonClass("text")" title="Choose text options" @onclick='() => SelectDrawToolAsync("text")'><span class="button-icon text-icon" aria-hidden="true">T</span>Text</button>
+            </div>
+            <div class="control-actions control-actions-danger">
+                <button type="button" title="Delete the selected added object" disabled="@(!ControlState.CanDeleteSelected)" @onclick='() => RunEditorOperationAsync("deleteSelected")'><span class="button-icon" aria-hidden="true">⌫</span>Delete selected</button>
+                <button type="button" class="danger" title="Delete all added objects after confirmation" @onclick='() => RunEditorOperationAsync("deleteAll")'><span class="button-icon" aria-hidden="true">⌧</span>Delete all added objects</button>
+            </div>
+        </section>
+
+        @if (_activeDrawTool is not null)
+        {
+            <section class="control-group draw-options" aria-labelledby="draw-options-title">
+                <h2 id="draw-options-title">@DrawOptionsTitle</h2>
+                @switch (_activeDrawTool)
+                {
+                    case "freeDraw":
+                        <div class="tool-fields">
+                            <label>Brush color <input type="color" @bind="_brushColor" /></label>
+                            <label>Brush width <input type="range" min="1" max="50" @bind="_brushWidth" /><output>@_brushWidth px</output></label>
+                        </div>
+                        <button type="button" class="primary-tool-action" @onclick="StartFreeDrawingAsync"><span class="button-icon" aria-hidden="true">✎</span>Start drawing</button>
+                        break;
+                    case "shape":
+                        <div class="tool-fields">
+                            <label>Shape <select @bind="_shapeType"><option value="rect">Rectangle</option><option value="circle">Circle</option><option value="triangle">Triangle</option></select></label>
+                            <label>Fill <input type="color" @bind="_shapeFillColor" /></label>
+                            <label>Stroke <input type="color" @bind="_shapeStrokeColor" /></label>
+                            <label>Stroke width <input type="range" min="1" max="20" @bind="_shapeStrokeWidth" /><output>@_shapeStrokeWidth px</output></label>
+                        </div>
+                        <button type="button" class="primary-tool-action" @onclick="AddShapeAsync"><span class="button-icon" aria-hidden="true">▭</span>Add shape</button>
+                        break;
+                    case "icon":
+                        <div class="tool-fields">
+                            <label>Icon <select @bind="_iconType"><option value="arrow">Arrow</option><option value="cancel">Cancel</option></select></label>
+                            <label>Color <input type="color" @bind="_iconColor" /></label>
+                        </div>
+                        <button type="button" class="primary-tool-action" @onclick="AddIconAsync"><span class="button-icon" aria-hidden="true">➜</span>Add icon</button>
+                        break;
+                    case "text":
+                        <div class="tool-fields">
+                            <label>Text <input type="text" maxlength="120" @bind="_textValue" /></label>
+                            <label>Color <input type="color" @bind="_textColor" /></label>
+                            <label>Size <input type="number" min="8" max="144" @bind="_textSize" /></label>
+                        </div>
+                        <button type="button" class="primary-tool-action" @onclick="AddTextAsync"><span class="button-icon text-icon" aria-hidden="true">T</span>Add text</button>
+                        break;
+                }
+            </section>
+        }
+
+        <section class="control-group" aria-labelledby="adjustment-controls">
+            <h2 id="adjustment-controls">Image adjustment</h2>
+            <div class="control-actions">
+                <button type="button" class="action-wide @(ControlState.IsGrayscaleApplied ? "selected" : null)" title="Turn grayscale on or off" @onclick='() => RunEditorOperationAsync("toggleGrayscale")'><span class="button-icon" aria-hidden="true">◐</span>Grayscale</button>
+            </div>
+            <p>Mask is not available in this editor.</p>
+        </section>
+    </div>
+    }
+
+    <div class="image-editor-canvas">
+        <div @ref="_element"></div>
+        @if (!UseDefaultUi)
+        {
+            <footer class="image-statusbar" aria-label="Image information">
+                <span title="@ImageName"><strong>Name</strong> @ImageName</span>
+                <span><strong>Resolution</strong> @ImageResolution</span>
+                <span><strong>Format</strong> @ImageFormat</span>
+                <span><strong>Zoom</strong> @_zoomPercent%</span>
+            </footer>
+        }
+    </div>
+
+    @if (!UseDefaultUi)
+    {
+    <div class="image-editor-controls image-editor-controls-secondary" aria-label="Image viewing and history controls">
+        <section class="control-group control-group-view" aria-labelledby="view-controls">
+            <h2 id="view-controls">View</h2>
+            <label class="view-zoom-label" for="zoom-level">Zoom level</label>
+            <div class="view-zoom-controls">
+                <button type="button" title="Zoom out" aria-label="Zoom out" @onclick="ZoomOutAsync">−</button>
+                <form @onsubmit="ApplyZoomAsync" @onsubmit:preventDefault>
+                    <input id="zoom-level" type="number" min="10" max="500" step="10" @bind="_zoomPercent" aria-label="Zoom level percent" />
+                    <span aria-hidden="true">%</span>
+                    <button type="submit" title="Set zoom level">Set</button>
+                </form>
+                <button type="button" title="Zoom in" aria-label="Zoom in" @onclick="ZoomInAsync">+</button>
+            </div>
+            <p>Hold Space and drag to pan.</p>
+        </section>
+
+        <section class="control-group" aria-labelledby="history-controls">
+            <h2 id="history-controls">History <span class="history-count" aria-label="@HistoryCountLabel">@ControlState.History.Count</span></h2>
+            <div class="control-actions">
+                <button type="button" title="Undo the last change" disabled="@(!ControlState.CanUndo)" @onclick='() => RunEditorOperationAsync("undo")'><span class="button-icon" aria-hidden="true">↶</span>Undo</button>
+                <button type="button" title="Redo the last undone change" disabled="@(!ControlState.CanRedo)" @onclick='() => RunEditorOperationAsync("redo")'><span class="button-icon" aria-hidden="true">↷</span>Redo</button>
+            </div>
+            <details class="history-list">
+                <summary>View history</summary>
+                @if (ControlState.History.Count == 0)
+                {
+                    <p>No edits yet.</p>
+                }
+                else
+                {
+                    <ol>
+                        @foreach (var entry in ControlState.History.Reverse())
+                        {
+                            <li>@entry</li>
+                        }
+                    </ol>
+                }
+            </details>
+        </section>
+    </div>
+    }
+</div>
+
+@if (!UseDefaultUi && _isResizeDialogOpen)
+{
+    <div class="editor-dialog-backdrop">
+        <section class="editor-dialog" role="dialog" aria-modal="true" aria-labelledby="resize-dialog-title">
+            <form @onsubmit="ResizeAsync" @onsubmit:preventDefault>
+                <header>
+                    <h2 id="resize-dialog-title">Resize image</h2>
+                    <button type="button" class="dialog-close" title="Close resize dialog" @onclick="CloseResizeDialog" aria-label="Close resize dialog">×</button>
+                </header>
+                <div class="dialog-fields">
+                    <label for="resize-width">Width <input id="resize-width" type="number" min="1" @bind="_resizeWidth" @bind:after="UpdateHeightFromWidth" /></label>
+                    <label for="resize-height">Height <input id="resize-height" type="number" min="1" @bind="_resizeHeight" @bind:after="UpdateWidthFromHeight" /></label>
+                </div>
+                <label class="dialog-check"><input type="checkbox" @bind="_keepAspectRatio" />Keep aspect ratio</label>
+                <div class="dialog-actions">
+                    <button type="button" @onclick="CloseResizeDialog">Cancel</button>
+                    <button type="submit">Apply resize</button>
+                </div>
+            </form>
+        </section>
+    </div>
+}
+
+@if (!UseDefaultUi && _isRotateDialogOpen)
+{
+    <div class="editor-dialog-backdrop">
+        <section class="editor-dialog" role="dialog" aria-modal="true" aria-labelledby="rotate-dialog-title">
+            <form @onsubmit="RotateCustomAsync" @onsubmit:preventDefault>
+                <header>
+                    <h2 id="rotate-dialog-title">Custom rotate</h2>
+                    <button type="button" class="dialog-close" title="Close custom rotation dialog" @onclick="CloseRotateDialog" aria-label="Close custom rotation dialog">×</button>
+                </header>
+                <label for="rotation-degrees">Degrees <input id="rotation-degrees" type="number" min="1" max="360" @bind="_rotationDegrees" /></label>
+                <fieldset>
+                    <legend>Direction</legend>
+                    <label><input type="radio" name="rotation-direction" checked="@_isRotateClockwise" @onchange="SetRotateClockwise" />Clockwise</label>
+                    <label><input type="radio" name="rotation-direction" checked="@(!_isRotateClockwise)" @onchange="SetRotateCounterclockwise" />Counterclockwise</label>
+                </fieldset>
+                <div class="dialog-actions">
+                    <button type="button" @onclick="CloseRotateDialog">Cancel</button>
+                    <button type="submit">Apply rotation</button>
+                </div>
+            </form>
+        </section>
+    </div>
+}
+
+@code {
+    private const string DefaultImageUrl = "_content/ToastUIImageEditor.Blazor/images/sample-image.svg";
+    private static readonly System.Text.Json.JsonSerializerOptions StateSerializerOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+    private IJSObjectReference? _module;
+    private DotNetObjectReference<ImageEditor>? _selfReference;
+    private int _resizeWidth = 1000;
+    private int _resizeHeight = 600;
+    private double _resizeAspectRatio = 5d / 3d;
+    private bool _keepAspectRatio = true;
+    private bool _isResizeDialogOpen;
+    private int _rotationDegrees = 90;
+    private bool _isRotateClockwise = true;
+    private bool _isRotateDialogOpen;
+    private string? _activeDrawTool;
+    private string _brushColor = "#2563eb";
+    private int _brushWidth = 12;
+    private string _shapeType = "rect";
+    private string _shapeFillColor = "#dbeafe";
+    private string _shapeStrokeColor = "#2563eb";
+    private int _shapeStrokeWidth = 3;
+    private string _iconType = "arrow";
+    private string _iconColor = "#dc2626";
+    private string _textValue = "Text";
+    private string _textColor = "#111827";
+    private int _textSize = 36;
+    private int _zoomPercent = 100;
+    private int _imageWidth;
+    private int _imageHeight;
+
+    protected virtual string JsModulePath => "./_content/ToastUIImageEditor.Blazor/ImageEditor.razor.js";
+    private ImageEditorControlState ControlState { get; set; } = new();
+    private ElementReference _element;
+
+    /// <summary>Uses TOAST UI's native toolbar instead of the wrapper-owned controls.</summary>
+    [Parameter] public bool UseDefaultUi { get; set; }
+
+    /// <summary>The initial image URL loaded by the editor.</summary>
+    [Parameter] public string ImageUrl { get; set; } = DefaultImageUrl;
+
+    /// <summary>The name used by the native editor for the initial image.</summary>
+    [Parameter] public string ImageName { get; set; } = "Sample image";
+
+    /// <summary>The width assigned to the editor canvas.</summary>
+    [Parameter] public string Width { get; set; } = "100%";
+
+    /// <summary>The height assigned to the editor canvas.</summary>
+    [Parameter] public string Height { get; set; } = "700px";
+
+    /// <summary>The maximum canvas width in CSS pixels.</summary>
+    [Parameter] public int CssMaxWidth { get; set; } = 1000;
+
+    /// <summary>The maximum canvas height in CSS pixels.</summary>
+    [Parameter] public int CssMaxHeight { get; set; } = 600;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        _module = await JS.InvokeAsync<IJSObjectReference>("import", JsModulePath);
+        _selfReference = DotNetObjectReference.Create(this);
+        await _module.InvokeVoidAsync("initialize", _element, new
+        {
+            imageUrl = ImageUrl,
+            imageName = ImageName,
+            width = Width,
+            height = Height,
+            cssMaxWidth = CssMaxWidth,
+            cssMaxHeight = CssMaxHeight,
+            usageStatistics = false,
+            useDefaultUi = UseDefaultUi
+        }, _selfReference);
+        await RefreshImageSizeAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OpenResizeDialogAsync()
+    {
+        if (_module is null)
+        {
+            return;
+        }
+
+        var size = await _module.InvokeAsync<ImageEditorCanvasSize?>("getCanvasSize", _element);
+        if (size is null || size.Width < 1 || size.Height < 1)
+        {
+            return;
+        }
+
+        _resizeWidth = size.Width;
+        _resizeHeight = size.Height;
+        _resizeAspectRatio = (double)size.Width / size.Height;
+        _keepAspectRatio = true;
+        _isResizeDialogOpen = true;
+    }
+
+    private void CloseResizeDialog() => _isResizeDialogOpen = false;
+
+    private string HistoryCountLabel => $"{ControlState.History.Count} operation{(ControlState.History.Count == 1 ? string.Empty : "s")}";
+
+    private string ImageResolution => _imageWidth > 0 && _imageHeight > 0 ? $"{_imageWidth} × {_imageHeight}" : "Loading…";
+
+    private string ImageFormat
+    {
+        get
+        {
+            var path = ImageUrl.Split(['?', '#'], 2)[0];
+            var extension = Path.GetExtension(path).TrimStart('.');
+            return string.IsNullOrWhiteSpace(extension) ? "Unknown" : extension.ToUpperInvariant();
+        }
+    }
+
+    private Task ZoomOutAsync() => SetZoomAsync(_zoomPercent - 10);
+
+    private Task ZoomInAsync() => SetZoomAsync(_zoomPercent + 10);
+
+    private Task ApplyZoomAsync() => SetZoomAsync(_zoomPercent);
+
+    private async Task SetZoomAsync(int percent)
+    {
+        _zoomPercent = Math.Clamp(percent, 10, 500);
+        await RunEditorOperationAsync("zoom", new { percent = _zoomPercent });
+    }
+
+    private string DrawOptionsTitle => _activeDrawTool switch
+    {
+        "freeDraw" => "Draw options",
+        "shape" => "Shape options",
+        "icon" => "Icon options",
+        "text" => "Text options",
+        _ => "Tool options"
+    };
+
+    private string? GetDrawToolButtonClass(string tool) => _activeDrawTool == tool ? "selected" : null;
+
+    private Task SelectDrawToolAsync(string tool)
+    {
+        _activeDrawTool = tool;
+        return Task.CompletedTask;
+    }
+
+    private Task StartFreeDrawingAsync() => RunEditorOperationAsync("freeDraw", new { color = _brushColor, width = _brushWidth });
+
+    private Task AddShapeAsync() => RunEditorOperationAsync("addShape", new
+    {
+        type = _shapeType,
+        fill = _shapeFillColor,
+        stroke = _shapeStrokeColor,
+        strokeWidth = _shapeStrokeWidth
+    });
+
+    private Task AddIconAsync() => RunEditorOperationAsync("addIcon", new { type = _iconType, color = _iconColor });
+
+    private Task AddTextAsync() => RunEditorOperationAsync("addText", new { text = _textValue, color = _textColor, fontSize = _textSize });
+
+    private void UpdateHeightFromWidth()
+    {
+        if (_keepAspectRatio && _resizeWidth > 0 && _resizeAspectRatio > 0)
+        {
+            _resizeHeight = Math.Max(1, (int)Math.Round(_resizeWidth / _resizeAspectRatio));
+        }
+    }
+
+    private void UpdateWidthFromHeight()
+    {
+        if (_keepAspectRatio && _resizeHeight > 0 && _resizeAspectRatio > 0)
+        {
+            _resizeWidth = Math.Max(1, (int)Math.Round(_resizeHeight * _resizeAspectRatio));
+        }
+    }
+
+    private async Task ResizeAsync()
+    {
+        if (_resizeWidth < 1 || _resizeHeight < 1)
+        {
+            return;
+        }
+
+        await RunEditorOperationAsync("resize", new { width = _resizeWidth, height = _resizeHeight });
+        _resizeAspectRatio = (double)_resizeWidth / _resizeHeight;
+        _isResizeDialogOpen = false;
+    }
+
+    private void OpenRotateDialog()
+    {
+        _rotationDegrees = 90;
+        _isRotateClockwise = true;
+        _isRotateDialogOpen = true;
+    }
+
+    private void CloseRotateDialog() => _isRotateDialogOpen = false;
+
+    private void SetRotateClockwise() => _isRotateClockwise = true;
+
+    private void SetRotateCounterclockwise() => _isRotateClockwise = false;
+
+    private async Task RotateCustomAsync()
+    {
+        if (_rotationDegrees is < 1 or > 360)
+        {
+            return;
+        }
+
+        var degrees = _isRotateClockwise ? _rotationDegrees : -_rotationDegrees;
+        await RunEditorOperationAsync("rotateCustom", new { degrees });
+        _isRotateDialogOpen = false;
+    }
+
+    private async Task RefreshImageSizeAsync()
+    {
+        if (_module is null)
+        {
+            return;
+        }
+
+        var size = await _module.InvokeAsync<ImageEditorCanvasSize?>("getCanvasSize", _element);
+        if (size is not null)
+        {
+            _imageWidth = size.Width;
+            _imageHeight = size.Height;
+        }
+    }
+
+    private async Task RunEditorOperationAsync(string operation, object? argument = null)
+    {
+        if (_module is null)
+        {
+            return;
+        }
+
+        await _module.InvokeVoidAsync("runOperation", _element, operation, argument);
+        ControlState = await _module.InvokeAsync<ImageEditorControlState>("getControlState", _element);
+        await RefreshImageSizeAsync();
+    }
+
+    [JSInvokable]
+    public Task NotifyEditorStateChanged(System.Text.Json.JsonElement state)
+    {
+        ControlState = System.Text.Json.JsonSerializer.Deserialize<ImageEditorControlState>(state.GetRawText(), StateSerializerOptions) ?? new();
+        return InvokeAsync(StateHasChanged);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        var module = _module;
+        var selfReference = _selfReference;
+        _module = null;
+        _selfReference = null;
+
+        try
+        {
+            if (module is not null)
+            {
+                await module.InvokeVoidAsync("dispose", _element);
+                await module.DisposeAsync();
+            }
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+        finally
+        {
+            selfReference?.Dispose();
+        }
+
+        GC.SuppressFinalize(this);
+    }
+}

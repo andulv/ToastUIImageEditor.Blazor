@@ -1,9 +1,9 @@
 ---
 type: task
 description: "Task 001-07 — improve the sample layout and add a runtime image selector"
-status: not-started
+status: implemented
 created: 2026-08-02T16:05:52+02:00
-updated: 2026-08-02T16:05:52+02:00
+updated: 2026-08-02T16:14:50+02:00
 ---
 ## Required Context
 Load and follow these skills:
@@ -77,10 +77,20 @@ loads.
 # Execution
 
 ## Executor Notes
-By: @ YYYY-MM-DDTHH:MM:SS+HH:MM
+By: @openai-codex 2026-08-02T16:14:50+02:00
+
+Added three sample-host-owned SVG images and a page-load selector that discovers supported root-level files through the server web-root file provider. The selected URL is an allowlisted, escaped file name, and the `@key` recreates the native editor on selection. The sample now constrains the editor to 1000 pixels and a viewport-bounded height. Browser evidence is in `data/sample-image-selector-verification-2026-08-02.md`.
 
 ## Executor Verification
-By: @ YYYY-MM-DDTHH:MM:SS+HH:MM
+By: @openai-codex 2026-08-02T16:14:50+02:00
+
+- Ran `dotnet build ToastUIImageEditor.Blazor.slnx` — passed (0 warnings, 0 errors).
+- Ran `dotnet test tests/ToastUIImageEditor.Blazor.Tests/ToastUIImageEditor.Blazor.Tests.csproj` — passed (3 passed, 0 failed).
+- Ran `find samples/ToastUIImageEditor.Blazor.SampleHost/wwwroot/images/samples -maxdepth 1 -type f` — found `landscape.svg`, `portrait.svg`, and `square.svg`.
+- In headless Chrome, the selector listed only those three images in alphabetical order. Selected each image and recorded a request for its matching local static URL. The editor measured 1000 by 720 pixels in a 1440-pixel viewport; all native controls remained visible.
+- For the negative check, temporarily created `ignored.txt` and `nested/ignored.svg`. A page reload still listed only the three supported root-level files. Removed both temporary files.
+- Ran `git diff --check`, `git diff --cached --check`, and the plan validator — all passed. The validator reported 0 errors and 0 warnings.
+
 
 ## Reviewer Verification
 By: @ YYYY-MM-DDTHH:MM:SS+HH:MM

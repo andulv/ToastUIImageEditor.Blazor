@@ -1,9 +1,64 @@
 @page "/"
+@using Microsoft.Extensions.FileProviders
+@inject IWebHostEnvironment WebHostEnvironment
 
-<PageTitle>ToastUIImageEditor.Blazor sample</PageTitle>
+<PageTitle>TOAST UI Image Editor sample</PageTitle>
 
-<h1>ToastUIImageEditor.Blazor sample</h1>
+<h1>TOAST UI Image Editor sample</h1>
 
-<p>This scaffold confirms that the sample host can render a component from the library.</p>
+<p>Choose an image. Then use the native editor to crop, rotate, draw, add text, or apply a filter.</p>
 
-<HelloWorld />
+<div class="sample-image-picker">
+    <label for="sample-image">Sample image</label>
+    <select id="sample-image" @bind="_selectedImageUrl">
+        @foreach (var image in _images)
+        {
+            <option value="@image.Url">@image.Name</option>
+        }
+    </select>
+</div>
+
+<p>Add supported image files to <code>wwwroot/images/samples/</code>. Refresh this page to list new files.</p>
+
+@if (_selectedImage is not null)
+{
+    <div class="sample-editor">
+        <ImageEditor @key="_selectedImage.Url"
+                     ImageUrl="@_selectedImage.Url"
+                     ImageName="@_selectedImage.Name"
+                     Height="min(68vh, 720px)"
+                     CssMaxWidth="1000"
+                     CssMaxHeight="640" />
+    </div>
+}
+else
+{
+    <p>No supported image files were found in <code>wwwroot/images/samples/</code>.</p>
+}
+
+@code {
+    private static readonly HashSet<string> SupportedImageExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"
+    };
+
+    private IReadOnlyList<SampleImage> _images = [];
+    private string? _selectedImageUrl;
+
+    private SampleImage? _selectedImage => _images.FirstOrDefault(image => image.Url == _selectedImageUrl);
+
+    protected override void OnInitialized()
+    {
+        IDirectoryContents contents = WebHostEnvironment.WebRootFileProvider.GetDirectoryContents("images/samples");
+        _images = contents
+            .Where(file => !file.IsDirectory && SupportedImageExtensions.Contains(Path.GetExtension(file.Name)))
+            .OrderBy(file => file.Name, StringComparer.OrdinalIgnoreCase)
+            .Select(file => new SampleImage(
+                file.Name,
+                $"images/samples/{Uri.EscapeDataString(file.Name)}"))
+            .ToArray();
+        _selectedImageUrl = _images.FirstOrDefault()?.Url;
+    }
+
+    private sealed record SampleImage(string Name, string Url);
+}

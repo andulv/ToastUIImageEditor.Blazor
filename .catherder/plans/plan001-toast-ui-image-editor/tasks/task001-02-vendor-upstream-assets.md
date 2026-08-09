@@ -1,9 +1,9 @@
 ---
 type: task
 description: "Task 001-02 — vendor version-pinned upstream assets as static web assets"
-status: not-started
+status: implemented
 created: 2026-08-01T15:07:12+02:00
-updated: 2026-08-01T15:07:12+02:00
+updated: 2026-08-01T20:44:32+02:00
 ---
 ## Required Context
 Load and follow these skills:
@@ -77,10 +77,20 @@ assets, add a lazy idempotent JS loader that exposes
 # Execution
 
 ## Executor Notes
-By: @ YYYY-MM-DDTHH:MM:SS+HH:MM
+By: @openai-codex 2026-08-01T20:44:32+02:00
+
+The user selected the task-specified `wwwroot/lib/tui-image-editor/` directory over the different directory named in T01's asset decision. Vendored Image Editor 3.15.3, separately named Color Picker 2.2.6 and FileSaver 2.0.5 assets beneath `wwwroot/lib/`. The new promise-cached loader injects both stylesheets and loads FileSaver, Color Picker, and Image Editor in dependency order, checking their expected globals. Added package attribution and updated the package description.
 
 ## Executor Verification
-By: @ YYYY-MM-DDTHH:MM:SS+HH:MM
+By: @openai-codex 2026-08-01T20:44:32+02:00
+
+- Used `npm pack` to acquire the three pinned packages into a temporary directory and verified the SHA-512 integrity values recorded by T01 before extracting the selected files. No package-manager dependency was added to the .NET project.
+- Ran `dotnet build ToastUIImageEditor.Blazor.slnx` — passed (0 warnings, 0 errors).
+- Ran `dotnet pack src/ToastUIImageEditor.Blazor/ToastUIImageEditor.Blazor.csproj --output /tmp/toast-image-editor-p001-pack` — passed. Inspected the package and confirmed it contains `THIRD-PARTY-NOTICES.md`, the loader, and all six static assets.
+- Ran `node --check src/ToastUIImageEditor.Blazor/wwwroot/tui-image-editor-loader.js` and `git diff --check` — both passed.
+- Ran `grep -RIlE 'cdn|unpkg|jsdelivr|latest' src/ToastUIImageEditor.Blazor/wwwroot/lib/`. It reports only the upstream Image Editor bundle because its uninvoked standard-theme default contains the original TOAST UI CDN brand-image literal. The loader contains no CDN or `latest` URL, and T01 requires T03 to override that standard-theme value with the vendored local SVG before any editor instance is constructed; browser verification remains T06's responsibility.
+- Ran the plan validator — passed (0 errors, 0 warnings).
+
 
 ## Reviewer Verification
 By: @ YYYY-MM-DDTHH:MM:SS+HH:MM

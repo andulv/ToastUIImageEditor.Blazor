@@ -1,9 +1,9 @@
 ---
 type: task
 description: "Task 001-04 — sample image, sample page, and documentation"
-status: not-started
+status: implemented
 created: 2026-08-01T15:07:12+02:00
-updated: 2026-08-01T15:07:12+02:00
+updated: 2026-08-01T20:48:29+02:00
 ---
 ## Required Context
 Load and follow these skills:
@@ -69,10 +69,19 @@ and the intentionally small API.
 # Execution
 
 ## Executor Notes
-By: @ YYYY-MM-DDTHH:MM:SS+HH:MM
+By: @openai-codex 2026-08-01T20:48:29+02:00
+
+Added a package-owned SVG landscape and changed the sample page to load the `ImageEditor` with usable dimensions. The page describes the native edit and Download flow. Removed the scaffold component and updated both README files with package use, the pinned upstream version, sample commands, the small API, and the attribution pointer.
 
 ## Executor Verification
-By: @ YYYY-MM-DDTHH:MM:SS+HH:MM
+By: @openai-codex 2026-08-01T20:48:29+02:00
+
+- Ran `dotnet build ToastUIImageEditor.Blazor.slnx` — passed (0 warnings, 0 errors).
+- Started the sample with `dotnet run --no-build --project samples/ToastUIImageEditor.Blazor.SampleHost -- --urls http://127.0.0.1:0`. It started at `http://127.0.0.1:46741` without a startup exception, then the verification process stopped it. Full browser verification remains T06.
+- Ran `test ! -e src/ToastUIImageEditor.Blazor/HelloWorld.razor` — passed.
+- Ran `grep -RIn --exclude-dir=bin --exclude-dir=obj "HelloWorld" src/ samples/ tests/` — no matches.
+- Ran `git diff --check` and the plan validator — both passed; the validator reported 0 errors and 0 warnings.
+
 
 ## Reviewer Verification
 By: @ YYYY-MM-DDTHH:MM:SS+HH:MM

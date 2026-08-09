@@ -1,9 +1,9 @@
 ---
 type: task
 description: "Task 001-03 — implement the Blazor image-editor component and JS interop"
-status: not-started
+status: implemented
 created: 2026-08-01T15:07:12+02:00
-updated: 2026-08-01T15:07:12+02:00
+updated: 2026-08-01T20:46:33+02:00
 ---
 ## Required Context
 Load and follow these skills:
@@ -77,10 +77,19 @@ the native instance and disposes it cleanly.
 # Execution
 
 ## Executor Notes
-By: @ YYYY-MM-DDTHH:MM:SS+HH:MM
+By: @openai-codex 2026-08-01T20:46:33+02:00
+
+Added the reusable `ImageEditor` component and its collocated module. It owns one element and one module reference, creates an upstream full-UI instance only after first render, sets `usageStatistics: false`, uses a `WeakMap` for native instances, and calls `destroy()` during disposal. The module also supplies the local brand-image theme override selected in T01, so construction does not use the upstream default CDN image.
 
 ## Executor Verification
-By: @ YYYY-MM-DDTHH:MM:SS+HH:MM
+By: @openai-codex 2026-08-01T20:46:33+02:00
+
+- Ran `dotnet build ToastUIImageEditor.Blazor.slnx` — passed (0 warnings, 0 errors).
+- Ran `dotnet test tests/ToastUIImageEditor.Blazor.Tests/ToastUIImageEditor.Blazor.Tests.csproj` — passed with exit code 0; the existing scaffold test project reports no discovered tests.
+- Ran `node --check src/ToastUIImageEditor.Blazor/ImageEditor.razor.js` and `git diff --check` — both passed.
+- Inspected the component and module: the import path is `./_content/ToastUIImageEditor.Blazor/ImageEditor.razor.js`; initialization uses `includeUI` and `usageStatistics: false`; disposal invokes the native `destroy()` path and C# tolerates `JSDisconnectedException`.
+- Ran the plan validator — passed (0 errors, 0 warnings).
+
 
 ## Reviewer Verification
 By: @ YYYY-MM-DDTHH:MM:SS+HH:MM
