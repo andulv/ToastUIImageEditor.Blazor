@@ -254,6 +254,14 @@
     /// <summary>The maximum canvas height in CSS pixels.</summary>
     [Parameter] public int CssMaxHeight { get; set; } = 600;
 
+    /// <summary>
+    /// Maximum number of bytes read from a binary export
+    /// (<see cref="ExportAsync"/>). The default is deliberately generous so the
+    /// reusable wrapper does not impose an application-specific cap; callers
+    /// should set this to their own validated policy.
+    /// </summary>
+    [Parameter] public long MaxExportBytes { get; set; } = 50 * 1024 * 1024;
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender)
@@ -423,6 +431,33 @@
             _imageWidth = size.Width;
             _imageHeight = size.Height;
         }
+    }
+
+    /// <summary>
+    /// Exports the current editor canvas as a bounded binary stream (PNG by
+    /// default). The bytes travel as a <see cref="IJSStreamReference"/> (Blob),
+    /// not a base64 data URL.
+    /// </summary>
+    public async Task<Stream> ExportAsync(string format = "png", double? quality = null, CancellationToken cancellationToken = default)
+    {
+        if (_module is null)
+        {
+            throw new InvalidOperationException("The image editor is not initialized.");
+        }
+
+        var options = new Dictionary<string, object?> { ["format"] = format };
+        if (quality.HasValue)
+        {
+            options["quality"] = quality.Value;
+        }
+
+        var streamReference = await _module.InvokeAsync<IJSStreamReference>("exportImage", _element, options);
+        if (streamReference is null)
+        {
+            throw new InvalidOperationException("The image editor did not return an exportable image.");
+        }
+
+        return await streamReference.OpenReadStreamAsync(MaxExportBytes, cancellationToken);
     }
 
     private async Task RunEditorOperationAsync(string operation, object? argument = null)

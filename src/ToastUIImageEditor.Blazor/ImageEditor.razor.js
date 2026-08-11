@@ -226,6 +226,22 @@ export function getCanvasSize(element) {
     return { width: Math.round(width), height: Math.round(height) };
 }
 
+export async function exportImage(element, options) {
+    const { instance } = getContext(element);
+    const format = String(options?.format ?? "png");
+    const exportOptions = { format };
+    if (Number.isFinite(options?.quality)) {
+        exportOptions.quality = options.quality;
+    }
+
+    // tui.image-editor 3.15.3: toDataURL({format, quality}) returns a data-URL
+    // string synchronously. Convert it to a Blob so Blazor receives an
+    // IJSStreamReference instead of a base64 string.
+    const dataUrl = instance.toDataURL(exportOptions);
+    const response = await fetch(dataUrl);
+    return await response.blob();
+}
+
 export async function runOperation(element, operation, argument) {
     const context = getContext(element);
     const { instance, state } = context;

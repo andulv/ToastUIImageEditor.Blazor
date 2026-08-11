@@ -90,4 +90,22 @@ public sealed class ImageEditorTests : IAsyncDisposable
         Assert.NotNull(usageStatistics);
         Assert.False((bool)usageStatistics!.GetValue(options)!);
     }
+
+    [Fact]
+    public async Task ImageEditor_ExportAsync_Invokes_The_ExportImage_Interop_With_Png_Format()
+    {
+        var cut = _context.Render<ImageEditor>(parameters => parameters
+            .Add(p => p.MaxExportBytes, 4096));
+
+        // bUnit does not run the JS module, so the interop returns no stream and
+        // ExportAsync throws (defensive null check) after issuing the call. The
+        // issued call — identifier and PNG options — is the contract under test.
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await cut.Instance.ExportAsync("png"));
+
+        var export = _context.JSInterop.Invocations.Single(invocation => invocation.Identifier == "exportImage");
+        var options = Assert.IsAssignableFrom<IDictionary<string, object?>>(export.Arguments[1]);
+        Assert.Equal("png", options["format"]);
+        Assert.False(options.ContainsKey("quality"));
+    }
 }
